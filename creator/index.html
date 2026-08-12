@@ -1,1 +1,552 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE LAST ROOM — Creator Build</title>
+<style>
+:root{--bg:#030306;--panel:#0e0b10;--red:#ef2654;--text:#f1ebef;--muted:#948b91;--line:#4b2a36;--gold:#d8bf73;--green:#8fd3ad}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#020204;color:var(--text);font-family:Georgia,serif}
+body{background:radial-gradient(circle at 50% 0,#241018 0,#09070a 38%,#020204 78%);overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:70;opacity:.07;background:repeating-linear-gradient(0deg,transparent 0 3px,#fff 3px 4px);mix-blend-mode:screen}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:69;background:radial-gradient(ellipse at center,transparent 47%,rgba(0,0,0,.84) 100%)}
+#app{max-width:1120px;min-height:100vh;margin:auto;padding:22px;position:relative}
+h1{text-align:center;font-size:clamp(46px,9vw,96px);letter-spacing:.14em;margin:20px 0 8px;text-shadow:0 0 28px var(--red)}
+h2{color:#ff3760;letter-spacing:.07em;margin-top:0}
+.kicker{text-align:center;font:11px Arial,sans-serif;letter-spacing:.32em;color:#a89ba1;text-transform:uppercase}
+.subtitle{text-align:center;color:var(--muted);line-height:1.8;max-width:700px;margin:0 auto 30px}
+.top{display:grid;grid-template-columns:1fr auto auto auto auto;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:11px 0;margin-bottom:22px;font:11px Arial,sans-serif;letter-spacing:.07em;color:#aaa}
+.story{min-height:350px;font-size:19px;line-height:1.82}
+.story strong{color:#ff3b64}
+.panel{border:1px solid var(--line);background:rgba(12,9,13,.84);padding:15px;margin:14px 0;border-radius:5px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid button{margin:0}
+button,input{font:inherit}
+button{width:100%;padding:14px 16px;margin:7px 0;background:#130f14;border:1px solid #5a313e;color:#fff;border-radius:5px;text-align:left;cursor:pointer;transition:.15s}
+button:hover{border-color:var(--red);background:#291019;transform:translateX(3px)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.primary{text-align:center;background:#73112d;border-color:#bd294d;font-weight:bold;letter-spacing:.08em}
+input{width:100%;padding:13px;background:#08070a;border:1px solid #59313e;color:#fff;border-radius:4px}
+.inv{border-top:1px solid var(--line);margin-top:20px;padding-top:12px;font:11px Arial,sans-serif;color:#aaa}
+.item{display:inline-block;border:1px solid #4d3038;padding:6px 8px;margin:3px;border-radius:4px;color:#eee}
+.muted{color:var(--muted)}.danger{color:#ff315b}.ok{color:var(--green)}.gold{color:var(--gold)}.center{text-align:center}
+.batteryWrap{position:fixed;right:18px;bottom:18px;z-index:75;width:150px;height:9px;background:#1a0e12;border:1px solid #5a3c28;border-radius:6px;overflow:hidden;box-shadow:0 0 12px rgba(0,0,0,.8)}.batteryWrap i{display:block;height:100%;background:#d5b75e;transition:width .25s}.flashHud{position:fixed;right:18px;bottom:32px;z-index:75;font:11px Arial,sans-serif;color:#e6d18b;background:rgba(5,5,7,.82);padding:5px 8px;border-radius:4px}
+#dark{position:fixed;inset:0;z-index:60;background:radial-gradient(circle at 50% 50%,transparent 0 10%,rgba(0,0,0,.98) 34%,#000 73%);opacity:0;pointer-events:none;transition:.18s}
+#dark.on{opacity:1}
+#scare{position:fixed;inset:0;z-index:100;background:#000;display:none;align-items:center;justify-content:center;font-size:min(44vw,320px);text-shadow:0 0 34px #ff1c4e}
+#scare.on{display:flex;animation:jolt .42s ease-out}
+@keyframes jolt{0%{transform:scale(.2);opacity:0}45%{transform:scale(1.25);opacity:1}100%{transform:scale(1)}}
+#toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);z-index:120;background:#130e13;border:1px solid #753149;padding:10px 14px;border-radius:5px;font:12px Arial,sans-serif;color:#ddd;opacity:0;transition:.2s;pointer-events:none}
+#toast.on{opacity:1}
+.symbols{text-align:center;font-size:clamp(32px,6vw,58px);letter-spacing:.22em;margin:18px 0;color:#e9dfe3}
+.puzzleBoard{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:600px;margin:20px auto}
+.piece{aspect-ratio:4/3;border:1px solid #623544;background:#161116;display:flex;align-items:center;justify-content:center;font-size:clamp(26px,5vw,50px);cursor:pointer;user-select:none}
+.piece.sel{outline:2px solid #ff315b;box-shadow:0 0 16px #7c0d2b}
+.note{font-family:"Courier New",monospace;background:#0a090c;border-left:3px solid #8d1535;padding:12px 14px}
+.codeRow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:18px auto}
+.codeRow input{text-align:center;font-size:24px}
+@media(max-width:700px){#app{padding:15px}.grid{grid-template-columns:1fr}.top{grid-template-columns:1fr 1fr;gap:7px}.story{font-size:17px;min-height:390px}.piece{font-size:30px}}
 
+.creatorCard{max-width:720px;margin:18px auto;border:1px solid #6a3041;background:rgba(12,8,12,.92);padding:18px;border-radius:6px}
+.warning{font-family:Arial,sans-serif;font-size:13px;line-height:1.7;color:#c8bdc2}
+.statGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:620px;margin:22px auto}
+.stat{border:1px solid #4b2a36;background:#0b090c;padding:14px;text-align:center;font-family:Arial,sans-serif}
+.stat b{display:block;font-size:24px;color:#ff365f;margin-top:5px}
+#creature{position:fixed;right:-180px;bottom:0;z-index:58;width:150px;height:55vh;opacity:0;pointer-events:none;
+background:linear-gradient(90deg,transparent,rgba(0,0,0,.98));filter:drop-shadow(0 0 18px #5b0a20);transition:.35s}
+#creature:after{content:"●  ●";position:absolute;top:24%;right:25px;color:#eee;font-size:18px;letter-spacing:13px;text-shadow:0 0 12px #fff}
+#creature.peek{right:0;opacity:.92}
+.fakeCrash{position:fixed;inset:0;z-index:200;background:#050505;color:#d8d8d8;font:15px "Courier New",monospace;padding:7vw;display:none}
+.fakeCrash.on{display:block}
+@media(max-width:700px){.statGrid{grid-template-columns:1fr}}
+
+
+#dollScare{position:fixed;inset:0;z-index:250;background:#000;display:none;align-items:center;justify-content:center;overflow:hidden}
+#dollScare.on{display:flex;animation:dollFlash .62s steps(2,end)}
+#dollScare img{width:100vw;height:100vh;object-fit:cover;filter:contrast(1.35) brightness(.7) saturate(.65);animation:dollZoom .62s ease-out}
+@keyframes dollZoom{0%{transform:scale(.55)}35%{transform:scale(1.28)}100%{transform:scale(1.05)}}
+@keyframes dollFlash{0%,30%,70%{filter:brightness(1)}15%,55%{filter:brightness(2.5)}}
+
+
+#flashFixed{
+ position:fixed;
+ top:12px;
+ right:12px;
+ z-index:9999;
+ padding:7px 10px;
+ margin:0;
+ background:rgba(5,5,7,.94);
+ border:1px solid #5a3c28;
+ border-radius:5px;
+ color:#e6d18b;
+ font:12px Arial,sans-serif;
+ line-height:1;
+ box-shadow:0 0 12px rgba(0,0,0,.8);
+ pointer-events:none;
+}
+.batteryWrap,.flashHud{display:none!important}
+@media(max-width:700px){
+ #flashFixed{top:7px;right:7px;font-size:10px;padding:5px 7px}
+}
+</style>
+</head>
+<body>
+<div id="flashFixed">🔦 <span id="flashPercent">100%</span></div><div id="dark"></div>
+<div id="scare">◉</div>
+<div id="toast"></div><div id="creature"></div><div id="fakeCrash" class="fakeCrash"></div><div id="dollScare"><img src="doll-jumpscare.jpg" alt=""></div>
+<audio id="music" src="Kellerflur.mp3" loop preload="auto"></audio>
+<audio id="daisy" src="daisy-bell-creepy-version.mp3" preload="auto"></audio>
+<div id="app"></div>
+<script>
+(function(){
+"use strict";
+
+var app=document.getElementById("app"),dark=document.getElementById("dark"),scare=document.getElementById("scare"),toastEl=document.getElementById("toast"),music=document.getElementById("music"),daisy=document.getElementById("daisy");
+var S={
+ name:"",time:3600,panic:0,battery:100,light:true,items:[],flags:{},pieces:[],room:"Start",
+ ended:false,visits:{},wrong:0,sound:true,secrets:0,jumps:0,startStamp:0,creature:0,variant:null
+};
+var timer=null;
+var puzzleOrder=[4,1,6,2,5,3], puzzleTarget=[1,2,3,4,5,6], selected=null;
+
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function has(x){return S.items.indexOf(x)!==-1}
+function add(x){if(!has(x)){S.items.push(x);toast("Gefunden: "+x)}}
+function mark(x){S.flags[x]=true}
+function visited(x){S.visits[x]=(S.visits[x]||0)+1}
+function fmt(){var m=Math.max(0,Math.floor(S.time/60)),s=Math.max(0,S.time%60);return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")}
+function top(){return '<div class="top"><b>THE LAST ROOM</b><span>'+esc(S.room)+'</span><span class="danger">ZEIT <b id="clockHud">'+fmt()+'</b></span><span>PANIK <b id="panicHud">'+S.panic+'/5</b></span><span class="muted">LICHT <b id="lightHud">'+(S.light?'AN':'AUS')+'</b></span></div>'}
+function updateHudOnly(){
+ var f=document.getElementById("flashPercent");if(f)f.textContent=S.battery+"%";
+ var c=document.getElementById("clockHud");if(c)c.textContent=fmt();
+ var p=document.getElementById("panicHud");if(p)p.textContent=S.panic+"/5";
+ var l=document.getElementById("lightHud");if(l)l.textContent=S.light?"AN":"AUS";
+}
+function inv(){return S.items.length?S.items.map(x=>'<span class="item">'+esc(x)+'</span>').join(""):'<span class="muted">leer</span>'}
+function toast(t){toastEl.textContent=t;toastEl.classList.add("on");setTimeout(()=>toastEl.classList.remove("on"),1600)}
+function render(title,text,choices,room,grid){
+ S.room=room||S.room;visited(S.room);dark.classList.toggle("on",S.room!=="Startkammer"&&!S.light);
+ var btns=choices.map((c,i)=>'<button data-i="'+i+'" '+(c[2]?'disabled':'')+'>'+c[0]+'</button>').join("");
+ app.innerHTML=top()+'<div class="story"><h2>'+title+'</h2>'+text+'</div><div id="choices" class="'+(grid?'grid':'')+'">'+btns+'</div><div class="inv">INVENTAR: '+inv()+'</div>';
+ document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{if(!S.ended)choices[+b.dataset.i][1]()});updateHudOnly()
+}
+function wrong(){
+ S.wrong++;S.time=Math.max(0,S.time-75);S.panic=Math.min(5,S.panic+1);toast("Falsch — 75 Sekunden verloren.");
+ if(Math.random()<.55)jumpscare();
+}
+function jumpscare(){S.jumps++;scare.classList.add("on");setTimeout(()=>scare.classList.remove("on"),420)}
+function haunt(){
+ if(S.ended)return;
+ var r=Math.random();
+ if(r<.35){jumpscare();S.panic=Math.min(5,S.panic+1)}
+ else if(r<.7){toast(["HINTER DIR.","ICH SEHE DICH.","NICHT ALLEIN.","ZU LANGSAM."][Math.floor(Math.random()*4)])}
+ else{S.battery=Math.max(0,S.battery-8);toast("Die Taschenlampe flackert.")}
+}
+
+
+function stopDaisy(){
+ if(!daisy)return;
+ daisy.pause();daisy.currentTime=0;
+ if(S.sound){music.volume=.42;music.play().catch(function(){})}
+}
+function playDaisy(){
+ if(!S.sound||!daisy)return;
+ music.volume=.08;
+ daisy.currentTime=0;daisy.volume=.72;daisy.play().catch(function(){});
+}
+function dollJumpscare(force){
+ if(!force && Math.random()>.28)return;
+ var d=document.getElementById("dollScare");
+ if(!d)return;
+ S.jumps++;d.classList.add("on");
+ // WebAudio burst: generated locally, no extra copyrighted sound asset needed.
+ try{
+  var AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),o=ac.createOscillator(),g=ac.createGain();
+  o.type="sawtooth";o.frequency.setValueAtTime(95,ac.currentTime);o.frequency.exponentialRampToValueAtTime(520,ac.currentTime+.18);
+  g.gain.setValueAtTime(.0001,ac.currentTime);g.gain.exponentialRampToValueAtTime(.22,ac.currentTime+.025);g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.42);
+  o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.45);
+ }catch(e){}
+ setTimeout(function(){d.classList.remove("on")},650);
+}
+
+function secretFound(label){
+ if(!S.flags["secret_"+label]){S.flags["secret_"+label]=true;S.secrets++;toast("Geheimnis entdeckt.");}
+}
+function creaturePressure(){
+ if(S.ended||S.room==="Startkammer")return;
+ S.creature=Math.min(5,S.creature+1);
+ var c=document.getElementById("creature");
+ if(S.creature>=2 && Math.random()<.6){
+   c.classList.add("peek");
+   setTimeout(function(){c.classList.remove("peek")},650+Math.random()*900);
+ }
+ if(S.creature>=4 && Math.random()<.28){
+   S.battery=Math.max(0,S.battery-12);
+   toast("Etwas berührt deine Taschenlampe.");
+ }
+}
+function fakeCrashThen(cb){
+ var f=document.getElementById("fakeCrash");
+ f.innerHTML='THE LAST ROOM.exe<br><br>FATAL ERROR 0x00000011<br>Session terminated.<br><br><span style="color:#777">Bitte Fenster nicht schließen...</span>';
+ f.classList.add("on");
+ music.pause();
+ setTimeout(function(){
+   f.innerHTML='THE LAST ROOM.exe<br><br><span style="color:#ef2654">NEIN.</span>';
+ },1800);
+ setTimeout(function(){
+   f.classList.remove("on");
+   if(S.sound)music.play().catch(function(){});
+   jumpscare();
+   setTimeout(cb,500);
+ },3100);
+}
+function creatorEnding(title,text){
+ S.ended=true;if(timer)clearInterval(timer);dark.classList.remove("on");
+ var played=Math.max(0,Math.floor((Date.now()-S.startStamp)/1000));
+ var mm=Math.floor(played/60),ss=played%60;
+ app.innerHTML='<div class="kicker">THE LAST ROOM — CREATOR BUILD</div><h1>ENDE</h1>'+
+ '<div class="story center"><h2>'+title+'</h2>'+text+
+ '<div class="statGrid">'+
+ '<div class="stat">SPIELZEIT<b>'+String(mm).padStart(2,"0")+':'+String(ss).padStart(2,"0")+'</b></div>'+
+ '<div class="stat">FEHLVERSUCHE<b>'+S.wrong+'</b></div>'+
+ '<div class="stat">JUMPSCARES<b>'+S.jumps+'</b></div>'+
+ '<div class="stat">GEHEIMNISSE<b>'+S.secrets+'/4</b></div>'+
+ '</div><div class="panel"><strong>ENDING:</strong> '+title+'</div></div>'+
+ '<button class="primary" onclick="location.reload()">NOCHMAL SPIELEN</button>';
+}
+
+function startTimer(){
+ if(timer)return;
+ timer=setInterval(function(){
+  S.time--;
+  if(S.room!=="Startkammer"&&S.light&&S.time%4===0){
+   S.battery=Math.max(0,S.battery-1);
+   if(S.battery===0){S.light=false;dark.classList.add("on");toast("Die Batterie ist leer.")}
+  }
+  if(S.time%95===0&&Math.random()<.5)haunt();if(S.time%70===0)creaturePressure();
+  if(S.time<=0)end("ZEIT ABGELAUFEN","Im Dunkeln öffnet sich eine Tür. Etwas flüstert: <strong>„Jetzt bleibst du.“</strong>");
+  updateHudOnly();
+ },1000)
+}
+function toggleLight(){if(!has("Taschenlampe"))return;if(S.battery<=0){toast("Keine Batterie.");return}S.light=!S.light;dark.classList.toggle("on",S.room!=="Startkammer"&&!S.light);updateHudOnly()}
+function battery(id){
+ if(S.flags["battery_"+id]){toast("Diese Batterie hast du bereits benutzt.");return false}
+ S.flags["battery_"+id]=true;S.battery=100;toast("Neue Batterie eingesetzt — 100%.");updateHudOnly();return true
+}
+function end(title,text){S.ended=true;if(timer)clearInterval(timer);music.pause();dark.classList.remove("on");app.innerHTML='<div class="kicker">THE LAST ROOM — CREATOR BUILD</div><h1>ENDE</h1><div class="story center"><h2>'+title+'</h2>'+text+'</div><button class="primary" onclick="location.reload()">NOCHMAL SPIELEN</button>'}
+function ask(title,body,answers,win,back){
+ app.innerHTML=top()+'<div class="story"><h2>'+title+'</h2><div class="panel">'+body+'</div><input id="answer" autocomplete="off" placeholder="Deine Antwort"><button class="primary" id="check">PRÜFEN</button><button id="back">⬅ Zurück</button></div><div class="inv">INVENTAR: '+inv()+'</div>';
+ document.getElementById("check").onclick=function(){var a=document.getElementById("answer").value.toLowerCase();
+a=a.replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss");
+a=a.replace(/kreutz/g,"kreuz");
+a=a.replace(/[^a-z0-9]/g,"");
+if(answers.indexOf("__CLOCK_RANDOM__")!==-1){
+ var correct=S.variant.clockAnswer;
+ if(a===correct||a===correct.replace(/kreuz/g,"kreutz"))win();else wrong();
+}else if(answers.indexOf("__FINAL_RANDOM__")!==-1){
+ if(a===S.variant.finalCode)win();else wrong();
+}else if(answers.includes(a))win();else wrong()};
+ document.getElementById("back").onclick=back;
+ document.getElementById("answer").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("check").click()})
+}
+
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function initVariant(){
+ var motifs=shuffle(["Teddy","Standuhr","Akte","Ballons","Rohre","Spiegel"]);
+ var symbols=shuffle(["mond","turm","kreuz","stern"]);
+ var digits=shuffle(["1","4","7","9"]);
+ S.variant={fragmentMap:{1:motifs[0],2:motifs[1],3:motifs[2],4:motifs[3],5:motifs[4],6:motifs[5]},
+ clockAnswer:symbols.join(""),clockWords:symbols,finalCode:digits.join("")};
+}
+function fragMotif(n){return S.variant.fragmentMap[n]}
+function prettySymbol(s){return {mond:"MOND",turm:"TURM",kreuz:"KREUZ",stern:"STERN"}[s]||s.toUpperCase()}
+
+function menu(){
+ app.innerHTML='<div class="kicker">Creator Build 1.3.4 — DAISY FIX</div><h1>THE LAST ROOM</h1><div class="creatorCard"><div class="warning center"><strong class="danger">KOPFHÖRER EMPFOHLEN · LICHT AUS</strong><br><br>Dieses Spiel speichert keine persönlichen Daten. Es enthält plötzliches Flackern, laute Schreckmomente und psychologischen Horror.<br><br><span class="gold">Notizen sind erlaubt. Nicht jeder Hinweis erklärt sich sofort.</span></div></div><div style="max-width:470px;margin:30px auto"><input id="name" placeholder="Dein Name"><button class="primary" id="start">ICH BIN BEREIT</button></div>';
+ document.getElementById("start").onclick=start
+}
+function start(){S.startStamp=Date.now();initVariant();S.name=(document.getElementById("name").value||"Unbekannter").trim();music.volume=.25;music.play().catch(()=>{});startTimer();startRoom()}
+
+/* START */
+function startRoom(){stopDaisy();
+ render("DIE STARTKAMMER",
+ 'Eine rote Lampe flackert.<br><br>Auf dem Tisch liegen eine <strong>Taschenlampe</strong>, ein leerer Bilderrahmen und eine Standuhr.<br><br>Die Uhr trägt keine Zahlen, nur Zeichen:<div class="symbols">☽ ✣ ⊕ ♜</div>Hinter dir führt eine Tür in völlige Dunkelheit.',
+ [
+  ["🔦 Taschenlampe nehmen",()=>{add("Taschenlampe");startRoom()}],
+  ["🕰️ Standuhr ansehen",clockA],
+  ["🖼️ Leeren Bilderrahmen untersuchen",()=>{if(S.pieces.indexOf(2)<0)piece(2,fragMotif(2),startRoom);else puzzleBoard()}],
+  ["🚪 In den Flur",hall]
+ ],"Startkammer",true)
+}
+function clockA(){
+ mark("clockA");
+ render("DIE ERSTE UHR",
+ 'Der Stundenzeiger steht auf <strong>☽</strong>, der Minutenzeiger auf <strong>✣</strong>.<br><br>Unter dem Pendel steht:<div class="note">NICHT DIE ZEIT.<br>DIE STELLUNG.</div>',
+ [["⬅ Zurück",startRoom]],"Startkammer")
+}
+
+/* HALL */
+function hall(){stopDaisy();
+ if(!has("Taschenlampe"))return render("DUNKELHEIT","Ohne Licht gehst du hier nicht weiter.",[["⬅ Zurück",startRoom]],"Flur");
+ render("DER FLUR",
+ 'Dein Lichtkegel reicht nur wenige Meter.<br><br>Vier Türen: <strong>ARCHIV</strong>, <strong>KINDERZIMMER</strong>, <strong>KELLER</strong>, <strong>SPIEGELSAAL</strong>.<br><br>An der Decke hängt eine zweite Uhr.',
+ [
+  ["🔦 Taschenlampe an/aus",()=>{toggleLight();hall()}],
+  ["🕰️ Zur Decke leuchten",clockB],
+  ["📚 Archiv",archive],
+  ["🧸 Kinderzimmer",kids],
+  ["⬇ Keller",basement],
+  ["🚪 Notausgang am Flurende",falseExit],
+  ["🪞 Spiegelsaal",mirrorRoom],
+  ["↩️ Zurück in die Startkammer",startRoom]
+ ],"Flur",true)
+}
+function clockB(){
+ mark("clockB");
+ render("DIE ZWEITE UHR",
+ 'Diese Uhr läuft rückwärts.<br><br>Auf der Scheibe stehen:<div class="symbols">♜ ⊕ ✣ ☽</div>Ein tiefer Kratzer zeigt auf <strong>⊕</strong>.<br><br>Daneben steht:<div class="note">ZWEI POSITIONEN LÜGEN.</div>',
+ [["⬅ Flur",hall]],"Flur")
+}
+
+
+function falseExit(){
+ if(!S.flags.falseExit){
+   mark("falseExit");S.time=Math.max(0,S.time-90);S.panic=Math.min(5,S.panic+1);
+   render("NOTAUSGANG",
+    'Die Tür öffnet sich.<br><br>Dahinter liegt ein weißer Flur.<br><br>Du gehst hinein.<br><br>Nach zwölf Schritten stehst du wieder vor derselben Tür.<br><br>Auf der Innenseite steht jetzt:<div class="note">90 SEKUNDEN.</div>',
+    [["⬅ Zurück in den Flur",hall]],"Falscher Ausgang");
+ }else{
+   render("NOTAUSGANG",'Die Tür ist jetzt zugemauert.',[["⬅ Zurück",hall]],"Falscher Ausgang");
+ }
+}
+
+/* ARCHIVE */
+function archive(){stopDaisy();
+ render("DAS ARCHIV",
+ 'Metallregale voller Akten. Eine Schublade enthält eine Batterie.<br><br>Eine dritte Uhr ist in einen Aktenschrank eingelassen.<br><br>Auf dem Boden liegt ein Stück eines zerrissenen Fotos.',
+ [
+  ["🔋 Batterie nehmen",()=>{battery("archiv");archive()},S.flags["battery_archiv"]],
+  ["🗄️ Aktenschrank untersuchen",clockC],
+  ["🧩 Fragment neben Akte 47 nehmen",()=>piece(3,fragMotif(3),archive)],
+  ["📁 Akte 47 öffnen",archiveFile],
+  ["⬅ Flur",hall]
+ ],"Archiv",true)
+}
+function clockC(){
+ secretFound("wax");mark("clockC");
+ render("DIE DRITTE UHR",
+ 'Die Zeiger fehlen.<br><br>Vier Zeichen sind eingeritzt:<div class="symbols">✣ ♜ ☽ ⊕</div>Unter <strong>♜</strong> befindet sich rotes Wachs.<br><br>Auf einem Etikett:<div class="note">DAS DRITTE ZEICHEN<br>IST NICHT DAS DRITTE.</div>',
+ [["⬅ Archiv",archive]],"Archiv")
+}
+function archiveFile(){
+ if(!S.flags.pictureSolved)return render("AKTE 47","Die Akte ist mit einer Vertiefung in Form des zerrissenen Fotos versiegelt.",[["⬅ Zurück",archive]],"Archiv");
+ add("Messingschlüssel");
+ mark("archiveOpen");
+ render("AKTE 47",
+ 'Das zusammengesetzte Bild passt in die Vertiefung.<br><br>Die Akte öffnet sich. Darin liegen ein <strong>Messingschlüssel</strong> und eine Notiz:<div class="note">DAS KIND VERSTECKTE<br>DIE VIERTE UHR.</div>',
+ [["⬅ Archiv",archive]],"Archiv")
+}
+
+/* KIDS */
+function kids(){
+ render("DAS KINDERZIMMER",
+ 'Verblasste Tapete. Ein leeres Bett. Drei Bilder hängen schief.<br><br>Unter dem Bett glitzert etwas.<br><br>Eine Spieluhr spielt vier Töne in Endlosschleife.',
+ [
+  ["🧸 Teddy unter dem Bett ansehen",()=>piece(1,fragMotif(1),kids)],
+  ["🖼️ Die drei Bilder ansehen",kidsPictures],
+  ["🎵 Spieluhr untersuchen",musicBox],
+  ["🔋 Batterie aus dem Schrank nehmen",()=>{battery("kinderzimmer");kids()},S.flags["battery_kinderzimmer"]],
+  ["⬅ Flur",hall]
+ ],"Kinderzimmer",true)
+}
+function kidsPictures(){
+ secretFound("portrait");render("DIE DREI BILDER",
+ 'Bild 1 zeigt ein Haus mit <strong>1</strong> beleuchtetem Fenster.<br><br>Bild 2 zeigt zwei Menschen vor <strong>4</strong> Kerzen.<br><br>Bild 3 zeigt ein Kind mit <strong>7</strong> Ballons.<br><br>Hinter dem dritten Rahmen löst sich die Tapete.',
+ [
+  ["🧩 Fragment hinter Bild 3 nehmen",()=>piece(4,fragMotif(4),kids)],
+  ["⬅ Zurück",kids]
+ ],"Kinderzimmer")
+}
+function musicBox(){playDaisy();
+ mark("musicBox");
+ render("DIE SPIELUHR",
+ 'Vier Töne. Bei jedem Ton leuchtet kurz ein Zeichen auf.<div class="note">DIE MELODIE MARKIERT:<br><strong>'+S.variant.clockWords.map(prettySymbol).join(" — ")+'</strong></div>Auf der Unterseite steht:<div class="note">DIE REIHENFOLGE ÄNDERT SICH.</div>',
+ [["⬅ Zurück",kids]],"Kinderzimmer")
+}
+
+/* BASEMENT */
+function basement(){stopDaisy();
+ render("DER KELLER",
+ (S.light?'Deine Taschenlampe flackert.':'Fast völlige Dunkelheit.')+
+ '<br><br>Eine vierte Uhr liegt zerbrochen am Boden.<br><br>Daneben: ein Sicherungskasten, ein roter Scanner und ein weiteres Fotofragment.<br><br>Hinter den Rohren hörst du langsames Atmen.',
+ [
+  ["🔦 Taschenlampe an/aus",()=>{toggleLight();basement()}],
+  ["🔎 Glasscherben untersuchen",clockD],
+  ["🧩 Fragment bei den Rohren nehmen",()=>piece(5,fragMotif(5),basement)],
+  ["⚡ Sicherungskasten",fuseBox],
+  ["🩸 Scanner",scanner],
+  ["👂 Dem Atmen folgen",breathing],
+  ["⬅ Flur",hall]
+ ],"Keller",true)
+}
+function clockD(){
+ mark("clockD");
+ render("DIE VIERTE UHR",
+ 'Im Licht erscheinen Zeichen, die ohne Taschenlampe unsichtbar sind:<div class="symbols">⊕ ☽ ✣ ♜</div>Der abgebrochene Zeiger liegt auf <strong>✣</strong>.<br><br>In den Rahmen wurde geritzt:<div class="note">DER SPIEGEL<br>ENTSCHEIDET DIE REIHENFOLGE.</div>',
+ [["⬅ Keller",basement]],"Keller")
+}
+function breathing(){dollJumpscare(false);
+ secretFound("pipes");
+ if(!S.light)return end("DAS DING IM KELLER",'Du gehst dem Atmen nach.<br><br>Es verstummt.<br><br>Dann beginnt es direkt vor deinem Gesicht erneut.');
+ battery("rohre");mark("batSecret");
+ render("HINTER DEN ROHREN",
+ 'Du findest eine Ersatzbatterie.<br><br>An der Wand steht frisch geschrieben:<div class="note">DREH DICH NICHT UM.</div>',
+ [["⬅ Zurück",basement]],"Keller")
+}
+function fuseBox(){
+ if(!S.flags.clockSolved)return render("DER SICHERUNGSKASTEN",'Vier Sicherungen tragen dieselben Zeichen wie die Uhren.<br><br>Du kennst die richtige Reihenfolge noch nicht.',[["⬅ Zurück",basement]],"Keller");
+ if(!S.flags.basementSequence)return basementSequence();
+ add("Silberschlüssel");
+ render("DER SICHERUNGSKASTEN",
+ 'Die richtige Reihenfolge aktiviert ein verborgenes Fach.<br><br>Darin liegt ein <strong>Silberschlüssel</strong>.',
+ [["⬅ Keller",basement]],"Keller")
+}
+function basementSequence(){
+ ask("DIE SICHERUNGEN",
+ 'Auf den Sicherungen stehen die vier Wörter der Uhrensymbole.<br><br>Die Spieluhr gab die Grundfolge vor. Im Spiegel wurden die mittleren Positionen vertauscht.<br><br>Gib die vier Wörter ohne Leerzeichen ein.',
+ ["__CLOCK_RANDOM__"],
+ ()=>{mark("basementSequence");fuseBox()},
+ basement)
+}
+function scanner(){
+ secretFound("scanner");
+ if(!has("Spiegelsplitter"))return render("DER SCANNER",'Der Scanner verlangt eine Blutprobe.<br><br>Du brauchst etwas Scharfes.',[["⬅ Zurück",basement]],"Keller");
+ mark("blood");
+ add("Blutmarkierung");
+ render("ZUGANG BESTÄTIGT",
+ 'Der Scanner leuchtet grün.<br><br><strong>SUBJEKT 11 BESTÄTIGT</strong><br><br>Ein Fach öffnet sich. Darin liegt eine schwarze Karte:<div class="note">DER ECHTE AUSGANG<br>HAT KEINEN GRIFF.</div>',
+ [["⬅ Keller",basement]],"Keller")
+}
+
+/* MIRROR ROOM */
+function mirrorRoom(){stopDaisy();
+ render("DER SPIEGELSAAL",
+ 'Vier hohe Spiegel.<br><br>Drei zeigen dich normal.<br><br>Der vierte zeigt den Raum hinter dir — aber <strong>ohne dich</strong>.<br><br>Auf dem Rahmen befinden sich die vier Uhrensymbole.',
+ [
+  ["🕰️ Zeichen im Rahmen ansehen",clockMaster],
+  ["🪞 Den vierten Spiegel berühren",mirrorTouch],
+  ["🧩 Fragment im Spiegelrahmen nehmen",()=>piece(6,fragMotif(6),mirrorRoom)],
+  ["⬅ Flur",hall]
+ ],"Spiegelsaal",true)
+}
+function clockMaster(){
+ if(!(S.flags.clockA&&S.flags.clockB&&S.flags.clockC&&S.flags.clockD&&S.flags.musicBox))
+   return render("DIE VIER VERTIEFUNGEN",
+   'Im Rahmen befinden sich vier Vertiefungen.<br><br>Du erkennst dieselben Zeichen, die dir bereits an anderen Orten begegnet sind.<br><br><span class="muted">Hier steht keine Lösung. Wenn du nicht aufgepasst hast, musst du zurückgehen.</span>',
+   [["⬅ Zurück",mirrorRoom]],"Spiegelsaal");
+ ask("DIE VIER VERTIEFUNGEN",
+ 'Vier leere Positionen warten auf eine Reihenfolge.<br><br>Du musst die Hinweise aus den <strong>Uhren</strong>, der <strong>Spieluhr</strong> und den früheren Inschriften selbst zusammenbringen.<br><br>Gib vier Symbolnamen als Wörter ein.',
+ ["mondturmkreuzstern","mondturmkreutzstern"],
+ ()=>{mark("clockSolved");add("Uhrensiegel");render("DAS UHRWERK",'KLICK.<br><br>Hinter dem Spiegel öffnet sich ein Fach. Darin liegt ein <strong>Uhrensiegel</strong>. Auf ihm stehen die Zahlen <strong>4</strong> und <strong>7</strong>.',[["⬅ Spiegelsaal",mirrorRoom]],"Spiegelsaal")},
+ mirrorRoom)
+}
+function mirrorTouch(){if(S.visits.Spiegelsaal>1)dollJumpscare(false);
+ if(!S.flags.clockSolved)return render("DER VIERTE SPIEGEL",'Die Oberfläche bleibt schwarz. Im Rahmen befinden sich vier leere Vertiefungen.',[["⬅ Zurück",mirrorRoom]],"Spiegelsaal");
+ add("Spiegelsplitter");
+ ask("DAS SPIEGELRÄTSEL",
+ 'Auf dem beschlagenen Glas erscheinen vier leere Stellen.<br><br>Darunter steht nur:<div class="note">DAS KIND ZÄHLTE.<br>ICH ZEIGE ES ANDERSHERUM.</div><br>Du musst dich an die Zahlen im Kinderzimmer und den Hinweis der Spieluhr erinnern.<br><br>Welche vierstellige Zahl gehört in den Spiegel?',
+ ["5741"],
+ ()=>{mark("mirrorSolved");add("Spiegelmarke");render("HINTER DEM SPIEGEL",'Der Spiegel gleitet zur Seite.<br><br>Dahinter befindet sich eine schwarze Tür ohne Griff. Sie besitzt drei Schlüssellöcher und eine rechteckige Vertiefung.',[["🚪 Schwarze Tür",finalDoor]],"Spiegelsaal")},
+ mirrorRoom)
+}
+
+/* PICTURE PUZZLE */
+var fragmentNames={1:"Teddy",2:"Standuhr",3:"Akte",4:"Ballons",5:"Rohre",6:"Spiegel"};
+function piece(n,motif,back){
+ if(S.pieces.indexOf(n)<0){
+   S.pieces.push(n);
+   add("Fragment "+n+" — "+motif);
+ }
+ var found='<div class="panel"><strong>FRAGMENT '+n+' / 6</strong><br>Darauf ist deutlich zu erkennen: <strong>'+motif+'</strong>.</div>';
+ if(S.pieces.length>=6){
+   render("FOTOFRAGMENT "+n,
+   found+'Du hast jetzt alle sechs nummerierten Fragmente.<br><br>Der leere Bilderrahmen in der Startkammer könnte jetzt wichtig sein.',
+   [["🖼️ Zum Bilderrahmen",puzzleBoard],["⬅ Zurück",back]],S.room);
+ }else{
+   render("FOTOFRAGMENT "+n,
+   found+'Die Nummer ist in die Rückseite eingeritzt. <strong>Schreib dir Nummer und Motiv auf.</strong><br><br>Du besitzt jetzt '+S.pieces.length+'/6 Fragmente.',
+   [["⬅ Zurück",back]],S.room);
+ }
+}
+function puzzleBoard(){
+ if(S.pieces.length<6){
+   return render("DER LEERE BILDERRAHMEN",
+   'Sechs Vertiefungen sind mit <strong>1 bis 6</strong> nummeriert.<br><br>Dir fehlen noch Fragmente.',
+   [["⬅ Startkammer",startRoom]],"Startkammer");
+ }
+ app.innerHTML=top()+'<div class="story"><h2>DER LEERE BILDERRAHMEN</h2>'+
+ '<p>Die sechs Vertiefungen sind nummeriert. Trage zu jeder Nummer das Motiv ein, das du auf dem entsprechenden Fragment gesehen hast.</p>'+
+ '<div class="panel"><strong>Beispiel:</strong> Wenn auf einem Fragment ein Teddy zu sehen ist, trägst du bei genau dieser Fragmentnummer <em>Teddy</em> ein. Die Zuordnung ist in jeder Runde anders.</div>'+
+ '<div id="fragmentInputs">'+
+ [1,2,3,4,5,6].map(function(n){return '<label style="display:block;margin:10px 0"><strong>Fragment '+n+'</strong><input id="frag'+n+'" placeholder="Motiv auf Fragment '+n+'"></label>'}).join("")+
+ '</div><button class="primary" id="checkFragments">FRAGMENTE EINSETZEN</button><button id="leaveFragments">Später</button></div><div class="inv">INVENTAR: '+inv()+'</div>';
+ document.getElementById("checkFragments").onclick=function(){
+   var expected=[1,2,3,4,5,6].map(function(n){return fragMotif(n).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]/g,"")});
+   var ok=true;
+   for(var i=1;i<=6;i++){
+     var a=document.getElementById("frag"+i).value.toLowerCase();
+     a=a.replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]/g,"");
+     if(a!==expected[i-1])ok=false;
+   }
+   if(ok){
+     mark("pictureSolved");add("Zusammengesetztes Foto");
+     render("DAS VOLLSTÄNDIGE FOTO",
+     'Die sechs Fragmente rasten in den Rahmen.<br><br>Jetzt ergibt sich ein altes Foto des Kinderzimmers.<br><br>Auf dem Bild hält der <strong>Teddy</strong> etwas Metallisches in der Pfote. Hinter dem dritten Wandbild ist ein dunkler Hohlraum zu erkennen.<br><br>Im Spiegel des Fotos steht eine Gestalt.',
+     [["🧸 Zurück ins Kinderzimmer",kids],["📚 Zum Archiv",archive]],"Startkammer");
+   }else wrong();
+ };
+ document.getElementById("leaveFragments").onclick=startRoom;
+}
+/* FINAL */
+function finalDoor(){
+ var miss=[];
+ if(!S.flags.pictureSolved)miss.push("Foto");
+ if(!S.flags.clockSolved)miss.push("Uhren");
+ if(!S.flags.mirrorSolved)miss.push("Spiegel");
+ if(!S.flags.basementSequence)miss.push("Sicherungen");
+ if(!S.flags.blood)miss.push("Scanner");
+ if(!has("Messingschlüssel"))miss.push("Messingschlüssel");
+ if(!has("Silberschlüssel"))miss.push("Silberschlüssel");
+ if(miss.length)return render("DIE SCHWARZE TÜR",
+ 'Drei Schlüssellöcher. Eine rechteckige Vertiefung. Kein Griff.<br><br><strong>Der Mechanismus reagiert noch nicht.</strong><br><br>Die Tür verrät dir nicht, was fehlt.',
+ [["⬅ Zurück",mirrorRoom]],"Schwarze Tür");
+ finalRiddle1()
+}
+function finalRiddle1(){
+ ask("DAS LETZTE SCHLOSS — I",
+ 'Auf dem Uhrensiegel stehen <strong>4</strong> und <strong>7</strong>.<br>Auf der Spiegelmarke steht <strong>1</strong>.<br>Auf der schwarzen Karte vom Scanner steht <strong>11</strong>.<br><br>Eine Gravur sagt:<div class="note">NIMM DIE ZAHL,<br>DIE ZWEIMAL GEBOREN WURDE.</div>Welche zweistellige Zahl ist gemeint?',
+ ["11"],
+ finalRiddle2,
+ mirrorRoom)
+}
+function finalRiddle2(){
+ ask("DAS LETZTE SCHLOSS — II",
+ 'Das zusammengesetzte Foto zeigt sechs Motive:<br><strong>Schlüssel – Tür – Auge – Uhr – Bild – Tod</strong>.<br><br>Die Gravur an der Tür sagt:<div class="note">AUGE VOR UHR.<br>TÜR NACH SCHLÜSSEL.<br>TOD ZULETZT.</div>Welche Position im Bild hat die <strong>Uhr</strong>?',
+ ["4","vier"],
+ finalRiddle3,
+ mirrorRoom)
+}
+function finalRiddle3(){
+ ask("DAS LETZTE SCHLOSS — III",
+ 'Du hast jetzt zwei Antworten: <strong>11</strong> und <strong>4</strong>.<br><br>Auf der Rückseite des Messingschlüssels steht <strong>7</strong>.<br>Auf dem Silberschlüssel steht <strong>1</strong>.<br><br>Letzte Gravur:<div class="note">SPIEGEL — SCANNER — FOTO — MESSING</div>Gib den vierstelligen Endcode ein.',
+ ["1147"],
+ ()=>fakeCrashThen(function(){creatorEnding("ENDING 01 — NICHT DRAUSSEN",
+ 'Die schwarze Tür öffnet sich lautlos.<br><br>Kalte Nachtluft.<br><br>Du machst drei Schritte.<br><br>Dann geht dein Bildschirm aus.<br><br>Als das Bild zurückkehrt, stehst du wieder vor derselben Tür — diesmal von der <strong>anderen Seite</strong>.<br><br>Auf deinem Handy steht:<br><strong>„RAUM 2 WARTET.“</strong>')}),
+ mirrorRoom)
+}
+
+menu();
+})();
+</script>
+</body>
+</html>
