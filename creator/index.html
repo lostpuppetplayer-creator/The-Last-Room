@@ -234,7 +234,7 @@ function fragMotif(n){return S.variant.fragmentMap[n]}
 function prettySymbol(s){return {mond:"MOND",turm:"TURM",kreuz:"KREUZ",stern:"STERN"}[s]||s.toUpperCase()}
 
 function menu(){
- app.innerHTML='<div class="kicker">Creator Build 1.3 — RANDOMIZED</div><h1>THE LAST ROOM</h1><div class="creatorCard"><div class="warning center"><strong class="danger">KOPFHÖRER EMPFOHLEN · LICHT AUS</strong><br><br>Dieses Spiel speichert keine persönlichen Daten. Es enthält plötzliches Flackern, laute Schreckmomente und psychologischen Horror.<br><br><span class="gold">Notizen sind erlaubt. Nicht jeder Hinweis erklärt sich sofort.</span></div></div><div style="max-width:470px;margin:30px auto"><input id="name" placeholder="Dein Name"><button class="primary" id="start">ICH BIN BEREIT</button></div>';
+ app.innerHTML='<div class="kicker">Creator Build 1.3.1 — RANDOMIZED</div><h1>THE LAST ROOM</h1><div class="creatorCard"><div class="warning center"><strong class="danger">KOPFHÖRER EMPFOHLEN · LICHT AUS</strong><br><br>Dieses Spiel speichert keine persönlichen Daten. Es enthält plötzliches Flackern, laute Schreckmomente und psychologischen Horror.<br><br><span class="gold">Notizen sind erlaubt. Nicht jeder Hinweis erklärt sich sofort.</span></div></div><div style="max-width:470px;margin:30px auto"><input id="name" placeholder="Dein Name"><button class="primary" id="start">ICH BIN BEREIT</button></div>';
  document.getElementById("start").onclick=start
 }
 function start(){S.startStamp=Date.now();initVariant();S.name=(document.getElementById("name").value||"Unbekannter").trim();music.volume=.25;music.play().catch(()=>{});startTimer();startRoom()}
@@ -522,3 +522,24 @@ menu();
 </script>
 </body>
 </html>
+<style>
+.batteryWrap{display:none!important}
+.flashHud{
+ position:fixed!important;
+ right:16px!important;
+ top:16px!important;
+ bottom:auto!important;
+ z-index:9999!important;
+ margin:0!important;
+ width:auto!important;
+ height:auto!important;
+ line-height:1!important;
+ pointer-events:none!important;
+ contain:layout paint style;
+ transform:translateZ(0);
+}
+html,body{overflow-x:hidden}
+@media(max-width:700px){
+ .flashHud{right:8px!important;top:8px!important;font-size:10px!important;padding:5px 7px!important}
+}
+</style>
