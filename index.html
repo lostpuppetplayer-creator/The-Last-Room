@@ -443,20 +443,18 @@ function startIntro(){
  // Zeitmarken passend zur aufgenommenen Intro-Stimme (Sekunden ab Audiostart).
  // Keine unabhängige Text-Uhr: Pausieren und Puffern verschieben den Text nicht.
  var cues=[
-  [0.0,''],[1.25,'Ah …'],[3.44,'Ein neuer Gast.'],[5.44,'Wie schön.'],
-  [7.85,'Ich habe schon lange auf dich gewartet.'],
-  [11.12,'Du glaubst, du bist hier zum Spielen?'],
-  [15.63,'Nein … nein … nein …'],
-  [19.46,'Du bist hier, weil das Haus dich ausgewählt hat.'],
-  [24.84,'Hör genau hin.'],
+  [0.0,''],[1.25,'Ahhh...'],[3.44,'Ein neuer Gast.'],[5.44,'Wie schön!'],
+  [7.85,'Ich habe schon lange auf dich gewartet!'],
+  [11.12,'Du glaubst, du bist hier, um zu spielen?'],
+  [15.63,'Nein... Nein... Nein...'],
+  [19.46,'Du bist hier, weil das Haus dich auserwählt hat!'],
+  [24.84,'Hör genau hin...'],
   [26.59,'Manche Stimmen sagen die Wahrheit.'],
   [28.32,'Manche führen dich in die Dunkelheit.'],
-  [30.35,'Und manche …'],
-  [31.55,'… gehören gar nicht mehr den Lebenden.'],
-  [36.04,'Vergiss nicht.'],[40.28,'Die Zeit läuft.'],
-  [42.49,'Das Licht stirbt.'],[44.46,'Und ich …'],
-  [46.49,'… sehe alles.'],[48.18,'Willkommen …'],
-  [50.82,'… in THE LAST ROOM.'],[55.97,'']
+  [30.35,'Und manche gehören nicht mehr den Lebenden.'],
+  [36.04,'Und vergiss nicht:'],[40.28,'Die Zeit läuft.'],
+  [42.49,'Das Licht stirbt.'],[44.46,'Und ich sehe alles...'],
+  [48.18,'Willkommen in The Last Room.'],[55.97,'']
  ];
  var introMusic=document.getElementById('introMusic'),introNoise=document.getElementById('introNoise');
  function stopIntroAmbience(){
@@ -964,7 +962,7 @@ function silenceForEndFour(){
  if(ambienceAudio){ambienceAudio.pause();ambienceAudio=null;}
  if(kidsSoundTimer)clearTimeout(kidsSoundTimer);
  if(endFourDrone){endFourDrone.pause();endFourDrone=null;}
- endFourDrone=new Audio('uhrwerk-droehnen.wav');endFourDrone.loop=true;endFourDrone.volume=.17;
+ endFourDrone=new Audio('uhrwerk-droehnen.wav');endFourDrone.loop=true;endFourDrone.volume=.10;
  endFourDrone.play().catch(function(){});
 }
 function restoreAfterEndFour(){
@@ -1001,8 +999,8 @@ function playEndFourTest(i){
  a.onended=function(){
   if(endFourAudio!==a)return;
   var status=document.getElementById('endFourStatus');if(status)status.textContent='Romina, Silas und The Puppeteer …';
-  var chorus=new Audio('ende-iv-drei-stimmen.mp3');chorus.volume=.22;endFourAudio=chorus;
-  chorus.onended=function(){restoreAfterEndFour();var st=document.getElementById('endFourStatus');if(st)st.textContent='ENDE IV – Das letzte Versteck';};
+var chorus=new Audio('ende-iv-drei-stimmen.mp3');chorus.volume=.11;endFourAudio=chorus;
+   chorus.onended=function(){restoreAfterEndFour();var st=document.getElementById('endFourStatus');if(st)st.textContent='ENDE IV – Das letzte Versteck';};
   chorus.play().catch(function(){toast('Bitte Audio-Wiedergabe im Browser erlauben.')});
  };
  a.play().catch(function(){toast('Bitte Audio-Wiedergabe im Browser erlauben.')});
@@ -1173,7 +1171,7 @@ function stageAudio(kind){
  try{
   if(stageSfx){stageSfx.pause();stageSfx.currentTime=0}
   stageSfx=stageSounds[kind==='wrong'?'wrong':'right'];stageSfx.pause();stageSfx.currentTime=0;
-  stageSfx.volume=.75;stageSfx.play().catch(function(e){console.warn('Puppengeräusch:',e);toast('Puppenton blockiert – Ton aktivieren.');});
+  stageSfx.volume=(kind==='wrong'?.34:.60);stageSfx.play().catch(function(e){console.warn('Puppengeräusch:',e);toast('Puppenton blockiert – Ton aktivieren.');});
  }catch(e){console.warn('Puppengeräusch:',e)}
 }
 function stageWhisper(){
@@ -1418,23 +1416,23 @@ function musicBox(){
  var done=false,scared=false,ending=false,lastCue=-1,escapeVoice=null,escapeTimer=null;
  // Drei separate Stereo-Flüsterclips: links, rechts, hinter dem Spieler.
  var boxWhispers=['links','rechts','hinten'].map(function(dir){var audio=new Audio('romina-spieluhr-'+dir+'.mp3');audio.volume=.65;return audio;});
- var boxWhisperTimers=[],whisperStarted=false,whisperIndex=0;
+var boxWhisperTimers=[],whisperStarted=false,whisperIndex=0,whisperFinished=false,pendingSongEnd=false;
  function startBoxWhisper(){
   if(done||ending||whisperStarted||!S.sound)return;
   whisperStarted=true;whisperIndex=0;
   // Verkettete Wiedergabe statt starrer 7,5-Sekunden-Timer.
   // Der letzte Satz wird vor dem Liedende abgespielt.
   function nextWhisper(){
-   if(done||ending||!S.sound||whisperIndex>=boxWhispers.length)return;
+   if(done||!S.sound||whisperIndex>=boxWhispers.length)return;
    var audio=boxWhispers[whisperIndex++];audio.currentTime=0;
    audio.onended=function(){
     if(whisperIndex<boxWhispers.length){
-     boxWhisperTimers.push(setTimeout(nextWhisper,2100));
-    }
+     boxWhisperTimers.push(setTimeout(nextWhisper,800));
+    }else{whisperFinished=true;if(pendingSongEnd)completeSongEnd();}
    };
    audio.play().catch(function(){status.textContent='Rominas Flüstern konnte nicht abgespielt werden.';});
   }
-  boxWhisperTimers.push(setTimeout(nextWhisper,4800));
+  boxWhisperTimers.push(setTimeout(nextWhisper,500));
  }
  function stopBoxWhisper(){
   boxWhisperTimers.forEach(clearTimeout);boxWhisperTimers=[];
@@ -1468,12 +1466,21 @@ function musicBox(){
   }
   updateHudOnly();
  }
- function onSongEnd(){
+ function completeSongEnd(){
   if(done||ending)return;
   ending=true;status.textContent='Die Musik verstummt. Etwas kommt näher …';wl.textContent='';
-  // Jumpscare erst NACH dem letzten Ton, bevor die Steuerung freigegeben wird.
   if(!scared){scared=true;stopBoxWhisper();dollJumpscare(true,"spieluhr-neuer-schrei.mp3");loseSanity(7)}
   setTimeout(function(){finish(false)},1000);
+ }
+ function onSongEnd(){
+  if(done||ending)return;
+  // Der dritte Flüstersatz muss zu Ende spielen, auch wenn Daisy Bell früher endet.
+  daisy.pause();pendingSongEnd=true;
+  if(whisperFinished){completeSongEnd();return;}
+  status.textContent='Die Melodie verstummt … Romina flüstert noch.';
+  if(!whisperStarted)startBoxWhisper();
+  // Nur technische Notbremse bei fehlerhaften Audio-Dateien.
+  boxWhisperTimers.push(setTimeout(completeSongEnd,25000));
  }
  function onAudioError(){
   if(done)return;
