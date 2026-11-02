@@ -189,7 +189,7 @@ body.musicBoxActive #dollScare img{content:url("vorhangmann-jumpscare.jpg");filt
 <div id="toast"></div><div id="creature"></div><div id="fakeCrash" class="fakeCrash"></div><div id="dollScare"><img src="doll-jumpscare.jpg" alt=""></div><div id="handScare"><div class="hand">🖐️</div></div>
 <audio id="ritualAudio" src="romina-ritualfluestern.mp3" preload="auto"></audio>
 <audio id="music" src="Kellerflur.mp3" loop preload="auto"></audio>
-<audio id="introMusic" src="daisy-bell-creepy-version.mp3" preload="auto" loop></audio><audio id="introNoise" src="intro-rauschen.mp3" preload="auto" loop></audio><audio id="daisy" src="spieluhr-mit-fluestern.mp3" preload="auto"></audio><audio id="introAudio" src="intro-romina.mp3" preload="auto"></audio>
+<audio id="introMusic" src="intro-spieluhr-sanft.mp3" preload="auto" loop></audio><audio id="introNoise" src="intro-rauschen.mp3" preload="auto" loop></audio><audio id="daisy" src="spieluhr-mit-fluestern.mp3" preload="auto"></audio><audio id="introAudio" src="intro-romina.mp3" preload="auto"></audio>
 <div id="introOverlay" role="dialog" aria-label="Einführung"><div class="introInner"><div class="kicker">DIE VORSTELLUNG BEGINNT</div><div id="introLine" class="whisperLine"></div><button id="introSkip">Intro überspringen</button></div></div><div id="musicOverlay" role="dialog" aria-label="Spieluhr"><div class="introInner"><div class="kicker">DU MUSST ZUHÖREN</div><div class="musicDoll">♟</div><h2>DAISY BELL</h2><div id="whisperLine" class="whisperLine"></div><p id="musicStatus" class="muted">Die Walze dreht sich …</p><button id="musicEscape" style="font-size:12px">🩸 Vorzeitig verlassen (30 Blut)</button></div></div><div id="portraitScene" role="dialog" aria-label="Das vollständige Porträt" aria-modal="true"><div class="stageFrame"><img src="romina-silas-vor-dem-verschwinden.jpg" alt="Romina und Silas auf der alten Bühne"><video id="portraitAnimation" src="puppeteer-befreiung.mp4" preload="auto" playsinline style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#080506"></video><div class="faceDark"></div></div><div id="portraitCaption" class="sceneCaption"></div><button id="portraitSceneSkip" aria-label="Animation überspringen">Animation überspringen</button><img class="scareFace" src="vorhangmann-jumpscare.jpg" alt=""></div><div id="puppeteerEncounter" role="dialog" aria-modal="true" aria-label="The Puppeteer stellt sich vor" style="display:none;position:fixed;inset:0;z-index:920;background:radial-gradient(ellipse,#290912,#030204 75%);align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;color:#f5dce3"><img src="vorhangmann-jumpscare.jpg" alt="The Puppeteer" style="width:min(55vw,380px);max-height:55vh;object-fit:contain;filter:brightness(.55) contrast(1.3)"><p id="puppeteerEncounterText" style="font:clamp(18px,3vw,30px) Georgia,serif">Ob versteckt oder nicht … ICH KOMME!</p><button id="puppeteerEncounterContinue" style="display:none">Weitergehen</button></div><div id="spiderScene" role="dialog" aria-modal="true" aria-label="Die Spinne"><div class="spiderIntro" id="spiderIntro">Du hebst die staubige Taschenlampe auf …</div><video class="spiderVideo" id="spiderVideo" src="spinnen-jumpscare.mp4" preload="auto" playsinline aria-label="Eine Spinne springt auf dich zu"></video><div class="spiderQuestion">Bist du dir sicher, dass sie nicht mehr auf dir sitzt?</div></div><div id="letterOverlay" role="dialog" aria-modal="true" aria-label="Rominas Brief"><div class="letterPage"><h2>Der letzte Brief</h2><p id="letterText"></p><button id="letterSkip">Brief vollständig anzeigen</button><button id="letterContinue" style="display:none">Brief anheben</button></div></div><audio id="letterAudio" src="rominas-brief.mp3" preload="auto"></audio><div id="app"></div>
 <script>
 (function(){
@@ -341,7 +341,7 @@ function scheduleKidsSound(){
  kidsSoundTimer=setTimeout(playKidsSound,1800);
 }
 
-function ambientBlocked(){return !S.sound||S.locked||S.ended||S.room==='Start'||!!document.querySelector('#introOverlay.on,#musicOverlay.on,#portraitScene.on,#spiderScene.on')}
+function ambientBlocked(){return !!endFourDrone||!S.sound||S.locked||S.ended||S.room==='Start'||!!document.querySelector('#introOverlay.on,#musicOverlay.on,#portraitScene.on,#spiderScene.on')}
 function ambientPlay(kind,vol){
  if(ambientBlocked()||!ambienceFiles[kind])return;
  if(ambienceAudio&&!ambienceAudio.paused)return;
@@ -464,7 +464,7 @@ function startIntro(){
  }
  // Sehr leise Hintergrundkulisse; die Sprache bleibt dominant.
  function startIntroAmbience(){
-  introMusic.volume=.075;introNoise.volume=.042;
+  introMusic.volume=.10;introNoise.volume=.042;
   introMusic.currentTime=0;introNoise.currentTime=0;
   introMusic.play().catch(function(){});
   introNoise.play().catch(function(){});
@@ -513,12 +513,12 @@ function stopDaisy(){
  if(S.locked)return;
  if(!daisy)return;
  daisy.pause();daisy.currentTime=0;
- if(S.sound){music.volume=.19;music.play().catch(function(){})}
+ if(S.sound){music.volume=.095;music.play().catch(function(){})}
 }
 function playDaisy(){
  if(!S.sound||!daisy)return;
- music.volume=.04;
- daisy.currentTime=0;daisy.volume=.14;daisy.play().catch(function(){});
+ music.volume=.02;
+ daisy.currentTime=0;daisy.volume=.10;daisy.play().catch(function(){});
 }
 function playScareAudio(file,volume){
  if(!S.sound)return;
@@ -953,7 +953,26 @@ function hall(){stopDaisy();
  ],"Flur",true)
 }
 
-var endFourAudio=null;
+var endFourAudio=null,endFourDrone=null,endFourMusicVolume=null;
+function silenceForEndFour(){
+ if(endFourMusicVolume===null)endFourMusicVolume=music.volume;
+ music.pause();daisy.pause();
+ var im=document.getElementById('introMusic'),ino=document.getElementById('introNoise');im.pause();ino.pause();
+ var ra=document.getElementById('ritualAudio');ra.pause();
+ if(rominaPhraseAudio)rominaPhraseAudio.pause();
+ if(rominaWhisperAudio)rominaWhisperAudio.pause();
+ if(ambienceAudio){ambienceAudio.pause();ambienceAudio=null;}
+ if(kidsSoundTimer)clearTimeout(kidsSoundTimer);
+ if(endFourDrone){endFourDrone.pause();endFourDrone=null;}
+ endFourDrone=new Audio('uhrwerk-droehnen.wav');endFourDrone.loop=true;endFourDrone.volume=.17;
+ endFourDrone.play().catch(function(){});
+}
+function restoreAfterEndFour(){
+ if(endFourDrone){endFourDrone.pause();endFourDrone.currentTime=0;endFourDrone=null;}
+ if(endFourMusicVolume!==null){music.volume=endFourMusicVolume;endFourMusicVolume=null;
+  if(S.sound&&!S.ended)music.play().catch(function(){});}
+}
+
 var endFourReasons=[
  'Bei einer Verfolgungsjagd erwischt',
  'Taschenlampe im Versteck eingeschaltet',
@@ -963,7 +982,7 @@ var endFourReasons=[
  'Während der Jagd nicht versteckt',
  'Versteck zu früh verlassen'
 ];
-function stopEndFourAudio(){if(endFourAudio){endFourAudio.pause();endFourAudio.onended=null;endFourAudio.currentTime=0;endFourAudio=null;}}
+function stopEndFourAudio(){if(endFourAudio){endFourAudio.pause();endFourAudio.onended=null;endFourAudio.currentTime=0;endFourAudio=null;}restoreAfterEndFour();}
 function testEndingFour(){
  stopEndFourAudio();
  var choices=endFourReasons.map(function(label,i){return ['💀 '+(i+1)+'. '+label,function(){playEndFourTest(i)}]});
@@ -977,12 +996,13 @@ function playEndFourTest(i){
   ['⬅ Andere Todessprüche',testEndingFour],
   ['⬅ Zurück in den Flur',function(){stopEndFourAudio();hall()}]
  ],'Flur');
- var a=new Audio('puppeteer-tod-'+(i+1)+'.mp3');endFourAudio=a;a.volume=.70;
+ silenceForEndFour();
+ var a=new Audio('puppeteer-tod-'+(i+1)+'.mp3');endFourAudio=a;a.volume=.86;
  a.onended=function(){
   if(endFourAudio!==a)return;
   var status=document.getElementById('endFourStatus');if(status)status.textContent='Romina, Silas und The Puppeteer …';
-  var chorus=new Audio('ende-iv-drei-stimmen.mp3');chorus.volume=.72;endFourAudio=chorus;
-  chorus.onended=function(){var st=document.getElementById('endFourStatus');if(st)st.textContent='ENDE IV – Das letzte Versteck';};
+  var chorus=new Audio('ende-iv-drei-stimmen.mp3');chorus.volume=.40;endFourAudio=chorus;
+  chorus.onended=function(){restoreAfterEndFour();var st=document.getElementById('endFourStatus');if(st)st.textContent='ENDE IV – Das letzte Versteck';};
   chorus.play().catch(function(){toast('Bitte Audio-Wiedergabe im Browser erlauben.')});
  };
  a.play().catch(function(){toast('Bitte Audio-Wiedergabe im Browser erlauben.')});
@@ -1394,23 +1414,31 @@ function musicBox(){
  ov.classList.add('on');
  var previousMusicVolume=music.volume;
  music.volume=0; // Daisy Bell + echte Flüsterstimmen sind allein zu hören.
- daisy.pause();daisy.currentTime=0;daisy.volume=.14;
+ daisy.pause();daisy.currentTime=0;daisy.volume=.10;
  var done=false,scared=false,ending=false,lastCue=-1,escapeVoice=null,escapeTimer=null;
- var boxWhisper=new Audio('romina-spieluhr-fluestern.wav');
- boxWhisper.volume=.58;
- var whisperStarted=false;
+ // Drei separate Stereo-Flüsterclips: links, rechts, hinter dem Spieler.
+ var boxWhispers=['links','rechts','hinten'].map(function(dir){var audio=new Audio('romina-spieluhr-'+dir+'.mp3');audio.volume=.65;return audio;});
+ var boxWhisperTimers=[],whisperStarted=false;
  function startBoxWhisper(){
   if(done||ending||whisperStarted||!S.sound)return;
   whisperStarted=true;
-  boxWhisper.currentTime=0;
-  boxWhisper.play().catch(function(){/* Spieluhr bleibt auch ohne Flüstern spielbar. */});
+  [0,7500,15000].forEach(function(delay,i){
+   boxWhisperTimers.push(setTimeout(function(){
+    if(done||ending||!S.sound)return;
+    var audio=boxWhispers[i];audio.currentTime=0;
+    audio.play().catch(function(){status.textContent='Rominas Flüstern konnte nicht abgespielt werden.';});
+   },delay));
+  });
  }
- function stopBoxWhisper(){boxWhisper.pause();boxWhisper.currentTime=0;}
+ function stopBoxWhisper(){
+  boxWhisperTimers.forEach(clearTimeout);boxWhisperTimers=[];
+  boxWhispers.forEach(function(audio){audio.pause();audio.currentTime=0;});
+ }
  var phrases=[[0,'Lausche …'],[5,''],[38,'']];
  function progress(){
   if(done||!Number.isFinite(daisy.duration)||daisy.duration<=0)return;
   var t=daisy.currentTime,idx=0;
-  if(t>=5)startBoxWhisper();
+  // Flüstern wird unabhängig vom timeupdate-Event nach fünf Sekunden gestartet.
   for(var k=0;k<phrases.length;k++){if(t>=phrases[k][0])idx=k;else break}
   if(idx!==lastCue){lastCue=idx;wl.textContent=phrases[idx][1]}
   if(!ending)status.textContent='Die Melodie spielt …';
@@ -1488,12 +1516,12 @@ function musicBox(){
  daisy.addEventListener('timeupdate',progress);
  daisy.addEventListener('error',onAudioError);
  wl.textContent='Lausche …';
- daisy.play().catch(function(){
+ daisy.play().then(function(){boxWhisperTimers.push(setTimeout(startBoxWhisper,5000))}).catch(function(){
   if(done)return;
   status.textContent='Der Browser hat die Wiedergabe blockiert.';
   wl.textContent='Klicke, um die Spieluhr zu starten.';
   var b=document.createElement('button');b.textContent='Musik starten';
-  b.onclick=function(){daisy.play().then(function(){b.remove()}).catch(onAudioError)};
+  b.onclick=function(){daisy.play().then(function(){boxWhisperTimers.push(setTimeout(startBoxWhisper,5000));b.remove()}).catch(onAudioError)};
   status.appendChild(b);
  });
 }
@@ -1653,9 +1681,9 @@ function firstPuppeteerEncounter(){
  var label=document.getElementById('puppeteerEncounterText');
  panel.style.display='flex';button.style.display='none';
  label.textContent='Eins … Zwei … Drei …';
- puppeteerFirstAudio=new Audio('puppeteer-vorstellung.mp3');puppeteerFirstAudio.volume=.66;
+ puppeteerFirstAudio=new Audio('puppeteer-vorstellung.mp3');puppeteerFirstAudio.volume=.85;
  var finished=false;
- function ready(){if(finished)return;finished=true;button.style.display='inline-block';label.textContent='UND WEHE, ICH FINDE DICH NOCH EINMAL!';}
+ function ready(){if(finished)return;finished=true;leave();}
  function leave(){if(puppeteerFirstAudio){puppeteerFirstAudio.pause();puppeteerFirstAudio.currentTime=0;}panel.style.display='none';S.locked=false;portraitAftermath();}
  button.onclick=leave;
  puppeteerFirstAudio.onended=ready;puppeteerFirstAudio.onerror=ready;
@@ -1722,7 +1750,7 @@ function portraitAftermath(){
  mark("portraitHaunted");
  S.creature=Math.max(S.creature,2);
  render("DAS VERÄNDERTE PORTRÄT",
- '<div class="portrait"><img src="romina-silas-verschwunden.jpg" alt="Das Porträt ohne Romina und Silas" style="width:100%;height:100%;object-fit:cover;filter:grayscale(.65) contrast(1.2) brightness(.85) sepia(.25)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#ead9df;text-shadow:0 2px 8px black;font-size:clamp(16px,3vw,27px);font-weight:bold;letter-spacing:.09em;background:rgba(0,0,0,.3)">ROMINA UND SILAS SIND FORT.</div></div>'+
+ '<div class="portrait"><img src="romina-silas-verschwunden.jpg" alt="Das Porträt ohne Romina und Silas" style="width:100%;height:100%;object-fit:cover;filter:contrast(1.08) brightness(.93)"></div>'+
  '<p>Wo eben noch Romina und Silas standen, sind nur dunkle Flecken. Die riesige Marionette scheint näher gerückt zu sein.</p>'+
  '<p><strong>DU HAST SIE GESEHEN. JETZT HAT SIE DICH GESEHEN.</strong></p>'+
  '<p>Am Rand des Bildes hält der <strong>Teddy</strong> etwas Metallisches in der Pfote. Hinter dem dritten Wandbild ist ein dunkler Hohlraum zu erkennen. Im Spiegel des Fotos stand eine Gestalt.</p>',
